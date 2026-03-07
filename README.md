@@ -115,6 +115,8 @@ Guardrails:
     - `/menstruation_gauge/menstruation-gauge-card.js`
     - `/menstruation_gauge/menstruation-cycle-heatmap-card.js`
 - Type: `JavaScript module`
+
+//mental note: ignore of www subfolder within actual folder structure
   
 - restart HA
 - clear cache
