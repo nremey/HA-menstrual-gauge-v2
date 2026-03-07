@@ -1,3 +1,9 @@
+## AI was used
+AI (Codex) was used to help translate my own developed code from HTML/JavaScript to Python and YAML, and to help organize the Home Assistant repository for github.
+AI also generated or improved some shell commands (mainly to save time).
+The core idea and design were created by me (a human).
+Text was drafted with AI support (mostly translation and structure), because English is not my native language and health-related wording is sensitive.
+
 # HA Menstruation Gauge (HACS-ready) - development stage - testing only
 
 This repository contains:
