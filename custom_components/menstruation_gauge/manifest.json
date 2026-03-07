@@ -1,7 +1,6 @@
 {
   "domain": "menstruation_gauge",
   "name": "Menstruation Gauge",
-  "description": "a little period tracker / sensor with forecast-data",
   "version": "1.0.1",
   "codeowners": ["@nremey"],
   "config_flow": true,
