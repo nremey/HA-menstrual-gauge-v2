@@ -13,7 +13,7 @@ This repository contains:
 
 
 
-# How to setup:
+# How to setup:  Sorry, so many steps because of 2 parts: A) Integration + B) custom cards;
 - Open HACS, add Custom repositories: git: /nremey/HA-repo-test-menstrual-gauge
 - add in integration and services new integration, search for menstruation gauge
 - add user/friendly name and icon.
@@ -26,12 +26,11 @@ This repository contains:
     - //mental note: it is correct: ignore of www subfolder within actual folder structure
 
 - restart HA and clear the cache
-
 - ready to add the custom card per user: with the menstruation-gauge
 
-Sorry, so many steps because of 2 parts: A) Integration + B) custom cards;
-
 <img width="1016" height="431" alt="grafik" src="https://github.com/user-attachments/assets/6c516de7-4b1e-4c1c-aa3d-2e9d753a8987" />
+
+<img width="1007" height="652" alt="menstruation-gauge-card.js" src="https://github.com/user-attachments/assets/0268362b-2b66-49ad-84bc-9879d40c280c" />
 
 
 
@@ -39,7 +38,10 @@ Sorry, so many steps because of 2 parts: A) Integration + B) custom cards;
 ## Target Structure (GitHub)
 
 ```text
-HA_menstruation_gauge/
+HA-menstruation-gauge-v2/
+├── .github
+│   ├── hacs.yml
+│   └── hassfest.yml
 ├── hacs.json
 ├── README.md
 ├── DISCLAIMER.md
@@ -61,9 +63,6 @@ HA_menstruation_gauge/
             ├── menstruation-gauge-card.js
             └── menstruation-cycle-heatmap-card.js
 ```
-
-<img width="1007" height="652" alt="menstruation-gauge-card.js" src="https://github.com/user-attachments/assets/0268362b-2b66-49ad-84bc-9879d40c280c" />
-
 
 ## Why This Structure Is Required - Notes to myself to understand HACS requirements better.
 
@@ -139,41 +138,20 @@ Guardrails:
 - Personalize: use triggers only when they match your own symptom patterns.
 - Mutual consent: in shared households, use automations only with explicit mutual agreement.
 
-## step without HACS (manually) - tested , works so-so (additional steps are annoing)
-- copy the folder menstruation_gauge from "git: /nremey/HA-repo-test-menstrual-gauge to /config/custom_components in HA.
+## step without HACS (manually) - tested , similar to HACS
+- copy the folder /menstruation_gauge/ from github.com/nremey/HA-menstrual-gauge-v2/custom_components to /config/custom_components in HA.
 - Add the customcards under `Settings -> Devices & Services` (...)-Menu "Add ressouces
-(repeat per profile if needed).
     - `/menstruation_gauge/menstruation-gauge-card.js`
     - `/menstruation_gauge/menstruation-cycle-heatmap-card.js`
 - Type: `JavaScript module`
-
-//mental note: ignore of www subfolder within actual folder structure
   
 - restart HA
 - clear cache
-- Go to devices & integration -> "Menstruation cauge" add a sensor per user.
-- add a card: custom:menstruation-cycle-heatmap-card setup and add Menstruation days (its an click-interactive card, if allow new entries through calender is true)
+- Go to devices & integration -> add "Menstruation cauge", and than add a sensor per user.
+- add a card: custom:menstruation-cycle-heatmap-card setup
+- add Menstruation days (its an click-interactive card, if allow new entries through calender is true)
 - if at least one cycle is added, maybe display menstrual-cycle-data with: custom:menstruation-cycle-heatmap-card (not interactive so far)
 
-
-
-## Installation via HACS
-
-1. Create a GitHub repository with this structure.
-2. In HACS, add the repo URL under `Custom repositories` as `Integration`.
-3. Install `Menstruation Gauge` in HACS.
-4. Restart Home Assistant.
-5. Add the integration under `Settings -> Devices & Services` (repeat per profile if needed).
-- `/menstruation_gauge/menstruation-gauge-card.js`
-- `/menstruation_gauge/menstruation-cycle-heatmap-card.js`
-
-## Lovelace Resource
-
-Add JS resources (if not auto-registered):
-- `/menstruation_gauge/menstruation-gauge-card.js`
-- `/menstruation_gauge/menstruation-cycle-heatmap-card.js`
-
-Type: `JavaScript module`
 
 ## Card Configuration Examples
 
@@ -199,8 +177,8 @@ calendar_edit_enabled: true
 
 <img width="1000" height="592" alt="menstruation-cycle-heatmap-card.js" src="https://github.com/user-attachments/assets/9b5759bd-f343-4640-b7cb-f79e4c6b0847" />
 
-A future goal is to integrate tracked PMS-Symptoms (idea is there, but development has not started) within this card and make ist easy to visually spot pattern. And use this to may build automations around it. (like little Icons for Sympton on the accured day. (🤮 for vomitting, 🔥 for heat attack,  🥶 for freezing, and others; i hope yout get the idea what to expect)
-some symptom may accure around the same span of days after ther cycle start or towards the end. By alligning the cycle top or bottom, it gets easier to spot.
+A future goal is to integrate tracked PMS-Symptoms (idea is there, but development has not started) within this card and make ist easy to visually spot pattern. And use this to may build automations around it. Idea is little Icons for Symptons on the accured day (🤮 for vomitting, 🔥 for heat attack,  🥶 for freezing, and others; i hope yout get the idea what to expect)
+some symptom may accure around the same span of days after ther cycle start or towards the end. By alligning the periods top or bottom, it gets easier to spot.
 Use wisely.
 
 ```yaml
