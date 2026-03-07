@@ -11,6 +11,31 @@ This repository contains:
 - services for cycle data management
 - Lovelace custom cards for visualization and interaction
 
+
+
+# How to setup:
+- Open HACS, add Custom repositories: git: /nremey/HA-repo-test-menstrual-gauge
+- add in integration and services new integration, search for menstruation gauge
+- add user/friendly name and icon.
+    -may add more users if more bleeding persons are in the household.
+
+- Add the customcards under `Settings -> Devices & Services` (...)-Menu "Add ressouces
+    - `/menstruation_gauge/menstruation-gauge-card.js`
+    - `/menstruation_gauge/menstruation-cycle-heatmap-card.js`
+    - each of Type: `JavaScript module`
+    - //mental note: it is correct: ignore of www subfolder within actual folder structure
+
+- restart HA and clear the cache
+
+- ready to add the custom card per user: with the menstruation-gauge
+
+Sorry, so many steps because of 2 parts: A) Integration + B) custom cards;
+
+<img width="1016" height="431" alt="grafik" src="https://github.com/user-attachments/assets/6c516de7-4b1e-4c1c-aa3d-2e9d753a8987" />
+
+
+
+
 ## Target Structure (GitHub)
 
 ```text
