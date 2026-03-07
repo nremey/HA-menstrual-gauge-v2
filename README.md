@@ -14,7 +14,7 @@ This repository contains:
 
 
 # How to setup:  Sorry, so many steps because of 2 parts: A) Integration + B) custom cards;
-- Open HACS, add Custom repositories: git: /nremey/HA-repo-test-menstrual-gauge
+- Open HACS, add Custom repositories: git: /nremey/HA-menstrual-gauge-v2
 - add in integration and services new integration, search for menstruation gauge
 - add user/friendly name and icon.
     -may add more users if more bleeding persons are in the household.
