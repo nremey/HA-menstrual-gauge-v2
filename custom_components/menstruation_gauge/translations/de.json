@@ -1,0 +1,18 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Menstruation Gauge",
+        "description": "Erstelle ein Profil (Benutzername + Anzeigename) zur Zyklusverfolgung.",
+        "data": {
+          "profile": "Benutzername/Profil",
+          "friendly_name": "Anzeigename",
+          "icon": "Icon (optional, z. B. mdi:calendar-heart)"
+        }
+      }
+    },
+    "error": {
+      "invalid_profile": "Profil muss Buchstaben oder Zahlen enthalten."
+    }
+  }
+}

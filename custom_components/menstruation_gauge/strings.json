@@ -1,0 +1,18 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Menstruation Gauge",
+        "description": "Create a profile (username + friendly name) for cycle tracking.",
+        "data": {
+          "profile": "Username/Profile",
+          "friendly_name": "Friendly name",
+          "icon": "Icon (optional, e.g. mdi:calendar-heart)"
+        }
+      }
+    },
+    "error": {
+      "invalid_profile": "Profile must contain letters or numbers."
+    }
+  }
+}

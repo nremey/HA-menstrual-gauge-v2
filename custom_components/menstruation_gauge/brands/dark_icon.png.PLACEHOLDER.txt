@@ -1,0 +1,2 @@
+PLACEHOLDER for dark_icon.png
+Ersetze diese Datei durch ein echtes PNG mit gleichem Basisnamen: dark_icon.png
