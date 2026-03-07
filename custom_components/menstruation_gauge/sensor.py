@@ -69,6 +69,7 @@ class MenstruationGaugeSensor(SensorEntity):
         )
 
         self._state = model.state
+        has_history = bool(model.history)
         self._attrs = {
             ATTR_HISTORY: model.history,
             ATTR_GROUPED_STARTS: model.grouped_starts,
@@ -78,9 +79,9 @@ class MenstruationGaugeSensor(SensorEntity):
             ATTR_FERTILE_WINDOW_START: model.fertile_window_start,
             ATTR_FERTILE_WINDOW_END: model.fertile_window_end,
             ATTR_DAYS_UNTIL_NEXT_START: model.days_until_next_start,
-            ATTR_PERIOD_DURATION_DAYS: model.period_duration_days,
-            "period_duration_default_days": runtime.period_duration_days,
-            "period_duration_learned_avg_days": model.learned_period_duration_days,
+            ATTR_PERIOD_DURATION_DAYS: model.period_duration_days if has_history else None,
+            "period_duration_default_days": runtime.period_duration_days if has_history else None,
+            "period_duration_learned_avg_days": model.learned_period_duration_days if has_history else None,
             "profile": runtime.profile,
             "entry_id": self._entry.entry_id,
             "friendly_name": runtime.friendly_name,
