@@ -1,2 +1,0 @@
-PLACEHOLDER for icon@2x.png
-Ersetze diese Datei durch ein echtes PNG mit gleichem Basisnamen: icon@2x.png

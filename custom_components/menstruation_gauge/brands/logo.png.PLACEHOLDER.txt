@@ -1,2 +1,0 @@
-PLACEHOLDER for logo.png
-Ersetze diese Datei durch ein echtes PNG mit gleichem Basisnamen: logo.png

@@ -1,2 +1,0 @@
-PLACEHOLDER for dark_logo@2x.png
-Ersetze diese Datei durch ein echtes PNG mit gleichem Basisnamen: dark_logo@2x.png
