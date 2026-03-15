@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.typing import StateType
+from homeassistant.util import dt as dt_util
 
 from .const import (
     ATTR_AVG_CYCLE_LENGTH,
@@ -52,10 +54,21 @@ class MenstruationGaugeSensor(SensorEntity):
         self._icon: str | None = runtime.icon or None
 
     async def async_added_to_hass(self) -> None:
-        """Register update signal."""
+        """Register update signals and daily refresh."""
         self.async_on_remove(
             async_dispatcher_connect(self.hass, SIGNAL_HISTORY_UPDATED, self._handle_runtime_update)
         )
+        self.async_on_remove(
+            async_track_time_change(
+                self.hass,
+                self._handle_daily_refresh,
+                hour=0,
+                minute=0,
+                second=5,
+            )
+        )
+        # Force one recalculation on add/startup so day-based attributes are never stale.
+        self.async_schedule_update_ha_state(True)
 
     async def async_update(self) -> None:
         """Update sensor from shared runtime."""
@@ -65,7 +78,7 @@ class MenstruationGaugeSensor(SensorEntity):
         model = build_cycle_model(
             history=runtime.history,
             period_duration_days=runtime.period_duration_days,
-            today=date.today(),
+            today=dt_util.now().date(),
         )
 
         self._state = model.state
@@ -148,4 +161,7 @@ class MenstruationGaugeSensor(SensorEntity):
         return True
 
     def _handle_runtime_update(self) -> None:
+        self.async_schedule_update_ha_state(True)
+
+    def _handle_daily_refresh(self, _now: datetime) -> None:
         self.async_schedule_update_ha_state(True)
