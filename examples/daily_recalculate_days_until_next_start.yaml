@@ -1,0 +1,12 @@
+alias: Menstruation Gauge - Daily Recalculate days_until_next_start
+description: >
+  Triggers once per day and refreshes all menstruation gauge sensors,
+  so date-based attributes such as days_until_next_start are recalculated.
+mode: single
+trigger:
+  - platform: time
+    at: "00:00:05"
+condition: []
+action:
+  - service: menstruation_gauge.refresh_cycle_model
+    data: {}
