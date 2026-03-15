@@ -17,6 +17,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.util import slugify
@@ -34,6 +35,7 @@ from .const import (
     SERVICE_ADD_CYCLE_START,
     SERVICE_ERASE_ALL_HISTORY,
     SERVICE_EXPORT_HISTORY,
+    SERVICE_REFRESH_CYCLE_MODEL,
     SERVICE_FIELD_DATE,
     SERVICE_FIELD_DATES,
     SERVICE_FIELD_DAYS,
@@ -151,7 +153,48 @@ async def _async_save_and_notify(hass: HomeAssistant, runtime: MenstruationRunti
     runtime.history = normalize_history(runtime.history)
     runtime.period_duration_days = max(1, min(14, int(runtime.period_duration_days)))
     await runtime.storage.async_save(runtime.history, runtime.period_duration_days)
+    await _async_refresh_cycle_model(hass, {_entry_id_for_runtime(hass, runtime)})
+
+
+def _entry_id_for_runtime(hass: HomeAssistant, runtime: MenstruationRuntime) -> str:
+    for entry_id, candidate in hass.data.get(DOMAIN, {}).items():
+        if candidate is runtime:
+            return entry_id
+    raise HomeAssistantError(f"Runtime for profile '{runtime.profile}' is not registered.")
+
+
+def _target_entry_ids_for_call(hass: HomeAssistant, call: ServiceCall | None = None) -> set[str]:
+    domain_data: dict[str, MenstruationRuntime] = hass.data.get(DOMAIN, {})
+    if not domain_data:
+        return set()
+
+    if call is None or not call.data:
+        return set(domain_data)
+
+    runtime = _runtime_for_call(hass, call)
+    return {_entry_id_for_runtime(hass, runtime)}
+
+
+async def _async_refresh_cycle_model(hass: HomeAssistant, entry_ids: set[str] | None = None) -> None:
+    """Trigger recalculation for loaded cycle sensors and force entity updates."""
     async_dispatcher_send(hass, SIGNAL_HISTORY_UPDATED)
+
+    entity_registry = er.async_get(hass)
+    target_entry_ids = entry_ids or set(hass.data.get(DOMAIN, {}))
+    entity_ids: list[str] = []
+
+    for entry_id in target_entry_ids:
+        for entity_entry in er.async_entries_for_config_entry(entity_registry, entry_id):
+            if entity_entry.domain == Platform.SENSOR:
+                entity_ids.append(entity_entry.entity_id)
+
+    if entity_ids:
+        await hass.services.async_call(
+            "homeassistant",
+            "update_entity",
+            {"entity_id": entity_ids},
+            blocking=True,
+        )
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
@@ -201,10 +244,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     runtime.unregister_midnight_listener = async_track_time_change(
         hass,
-        lambda now: async_dispatcher_send(hass, SIGNAL_HISTORY_UPDATED),
-        hour=5,
+        lambda now: hass.async_create_task(_async_refresh_cycle_model(hass, {entry.entry_id})),
+        hour=0,
         minute=0,
-        second=0,
+        second=5,
     )
 
     hass.data[DOMAIN][entry.entry_id] = runtime
@@ -226,6 +269,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     async def async_export_history(call: ServiceCall) -> None:
         await _async_handle_export_history(hass, call)
+
+    async def async_refresh_cycle_model(call: ServiceCall) -> None:
+        await _async_handle_refresh_cycle_model(hass, call)
 
     common_profile_field = {
         vol.Optional(SERVICE_FIELD_ENTITY_ID): cv.entity_id,
@@ -298,6 +344,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             ),
         )
 
+    if not hass.services.has_service(DOMAIN, SERVICE_REFRESH_CYCLE_MODEL):
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_REFRESH_CYCLE_MODEL,
+            async_refresh_cycle_model,
+            schema=vol.Schema(common_profile_field),
+        )
+
     await _async_register_card_static_path(hass)
     await _async_ensure_lovelace_resource(hass)
 
@@ -320,6 +374,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             SERVICE_SET_PERIOD_DURATION,
             SERVICE_ERASE_ALL_HISTORY,
             SERVICE_EXPORT_HISTORY,
+            SERVICE_REFRESH_CYCLE_MODEL,
         ):
             if hass.services.has_service(DOMAIN, service):
                 hass.services.async_remove(DOMAIN, service)
@@ -405,6 +460,10 @@ async def _async_handle_export_history(hass: HomeAssistant, call: ServiceCall) -
 
     await hass.async_add_executor_job(_write_file)
     _LOGGER.info("Exported menstruation history for profile '%s' to %s", runtime.profile, target_path)
+
+
+async def _async_handle_refresh_cycle_model(hass: HomeAssistant, call: ServiceCall) -> None:
+    await _async_refresh_cycle_model(hass, _target_entry_ids_for_call(hass, call))
 
 
 async def _maybe_await(result: Any) -> Any:
