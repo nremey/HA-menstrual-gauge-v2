@@ -15,18 +15,22 @@ This repository contains:
 
 # How to setup:  Sorry, so many steps because of 2 parts: A) Integration + B) custom cards;
 - Open HACS, add Custom repositories: git: /nremey/HA-menstrual-gauge-v2
-- add in integration and services new integration, search for menstruation gauge
+- add in 'integration and services' new integration, search for "menstruation gauge"
 - add user/friendly name and icon.
     -may add more users if more bleeding persons are in the household.
 
-- Add the customcards under `Settings -> Devices & Services` (...)-Menu "Add ressouces
+- Add the customcards under `Settings -> Devices & Services` (...)-Menu "Add ressouces":
     - `/menstruation_gauge/menstruation-gauge-card.js`
     - `/menstruation_gauge/menstruation-cycle-heatmap-card.js`
     - each of Type: `JavaScript module`
     - //mental note: it is correct: ignore of www subfolder within actual folder structure
 
 - restart HA and clear the cache
-- ready to add the custom card per user: with the menstruation-gauge
+- ready to add the custom card per user: with the menstruation-gauge-card 
+
+- for daily recalculation of the remaining days, the user has to manually create an
+  automation in Home Assistant that calls the service
+  `menstruation_gauge.refresh_cycle_model` (example YAML is provided in `examples/`)
 
 <img width="1016" height="431" alt="grafik" src="https://github.com/user-attachments/assets/6c516de7-4b1e-4c1c-aa3d-2e9d753a8987" />
 
@@ -45,6 +49,8 @@ HA-menstruation-gauge-v2/
 ├── hacs.json
 ├── README.md
 ├── DISCLAIMER.md
+├── examples
+│   └── daily_recalculate_days_until_next_start.yaml
 └── custom_components/
     └── menstruation_gauge/
         ├── __init__.py
@@ -119,6 +125,7 @@ HA-menstruation-gauge-v2/
 - `menstruation_gauge.set_period_duration`
 - `menstruation_gauge.erase_all_history` (destructive, requires `erase_all: true` and explicit `entity_id`)
 - `menstruation_gauge.export_history` (export as `csv` or `txt`)
+- `menstruation_gauge.refresh_cycle_model`
 
 For multi-profile setups, target by `entity_id` (recommended).
 
@@ -148,9 +155,10 @@ Guardrails:
 - restart HA
 - clear cache
 - Go to devices & integration -> add "Menstruation cauge", and than add a sensor per user.
-- add a card: custom:menstruation-cycle-heatmap-card setup
-- add Menstruation days (its an click-interactive card, if allow new entries through calender is true)
-- if at least one cycle is added, maybe display menstrual-cycle-data with: custom:menstruation-cycle-heatmap-card (not interactive so far)
+- add a card: 
+  - for interactive GUI and Input, use: custom:menstruation-gauge-card,
+  - add Menstruation days (it is a click-interactive card, if allow new entries through calender is true)
+  - if at least one cycle is added, maybe display menstrual-cycle-data with: custom:menstruation-cycle-heatmap-card (not interactive so far)
 
 
 ## Card Configuration Examples
@@ -177,9 +185,20 @@ calendar_edit_enabled: true
 
 <img width="1000" height="592" alt="menstruation-cycle-heatmap-card.js" src="https://github.com/user-attachments/assets/9b5759bd-f343-4640-b7cb-f79e4c6b0847" />
 
-A future goal is to integrate tracked PMS-Symptoms (idea is there, but development has not started) within this card and make ist easy to visually spot pattern. And use this to may build automations around it. Idea is little Icons for Symptons on the accured day (🤮 for vomitting, 🔥 for heat attack,  🥶 for freezing, and others; i hope yout get the idea what to expect)
-some symptom may accure around the same span of days after ther cycle start or towards the end. By alligning the periods top or bottom, it gets easier to spot.
-Use wisely.
+The heatmap card is already prepared for future symptom visualization.
+The goal is to make recurring PMS-related patterns easier to spot visually and,
+if useful, later support assistive automations around them.
+
+Possible examples would be small icons on the day a symptom occurred,
+such as nausea, heat episodes, freezing, or similar recurring symptoms.
+Some symptoms may appear around similar day ranges after cycle start
+or closer to cycle end. With top or bottom alignment, such patterns
+can become easier to compare visually.
+
+At the moment, the card-side preparation is there, but the corresponding
+symptom sensors or data sources are not yet part of this integration.
+Because of that, this part is not yet fully usable or tested in practice
+and should currently be treated as experimental.
 
 ```yaml
 type: custom:menstruation-cycle-heatmap-card
@@ -194,7 +213,9 @@ symptom_entities:
     name: Nausea
     icon: mdi:emoticon-sick-outline
 ```
-Sidenote: The part around "symptom_entities" ist just an example how it could be added, not developd yet. Open to change.
+Sidenote: `symptom_entities` reflects the intended future direction of the
+heatmap card. The card is prepared for it, but the related symptom data
+sources are not yet implemented as part of this project.
 
 ## History Import Example
 
@@ -255,9 +276,19 @@ Use it as an optical aid, not as a safety-critical decision system.
 5. New: GUI editor for the custom gauge card.
 6. New: heatmap card for long-term visualization.
 
+## Feedback / Contributions
+
+Feedback, ideas, suggestions, edge cases, wishes, experiences, or other possible
+use cases are all welcome.
+
+I am open to hearing about all of it, but I cannot promise that every request
+will be implemented.
+
+I am also very open to help from others, including suggestions for cleaner code,
+better implementation approaches, additional visual cards, missing functions,
+or other improvements that would make this project more useful.
+
 
 Theme-examples:
 <img width="494" height="779" alt="light-theme" src="https://github.com/user-attachments/assets/1ab5a772-8bcb-4936-aacf-fe19266a6a31" />
 <img width="494" height="779" alt="dark-theme" src="https://github.com/user-attachments/assets/850b9750-fd2f-48fc-80b7-90cd182b4fe0" />
-
-
