@@ -33,6 +33,7 @@ SERVICE_SET_CYCLE_HISTORY = "set_cycle_history"
 SERVICE_SET_PERIOD_DURATION = "set_period_duration"
 SERVICE_ERASE_ALL_HISTORY = "erase_all_history"
 SERVICE_EXPORT_HISTORY = "export_history"
+SERVICE_REFRESH_CYCLE_MODEL = "refresh_cycle_model"
 
 SERVICE_FIELD_DATE = "date"
 SERVICE_FIELD_DATES = "dates"
