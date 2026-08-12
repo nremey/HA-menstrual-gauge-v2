@@ -124,6 +124,7 @@ class MenstruationGaugeCard extends HTMLElement {
     const predicted = this._normalizeISO(attrs.next_predicted_start);
     const fertileStart = this._normalizeISO(attrs.fertile_window_start);
     const fertileEnd = this._normalizeISO(attrs.fertile_window_end);
+    const ovulationDay = this._normalizeISO(attrs.ovulation_day);
 
     const viewDate = this._viewDate || new Date();
     const daysInMonth = this._monthDays(viewDate);
@@ -135,7 +136,8 @@ class MenstruationGaugeCard extends HTMLElement {
         day,
         iso,
         confirmed: confirmedSet.has(iso),
-        fertile: fertileStart && fertileEnd ? (this._dayDiff(iso, fertileStart) >= 0 && this._dayDiff(fertileEnd, iso) >= 0) : false
+        fertile: fertileStart && fertileEnd ? (this._dayDiff(iso, fertileStart) >= 0 && this._dayDiff(fertileEnd, iso) >= 0) : false,
+        ovulation: ovulationDay === iso
       });
     }
 
@@ -149,6 +151,7 @@ class MenstruationGaugeCard extends HTMLElement {
       periodDuration,
       fertileStart,
       fertileEnd,
+      ovulationDay,
       daysInMonth,
       series,
       todayIso: this._isoFromDate(new Date())
@@ -197,6 +200,7 @@ class MenstruationGaugeCard extends HTMLElement {
         tick: 'rgba(190,24,93,.22)',
         confirmed: '#be123c',
         fertile: '#facc15',
+        ovulation: '#16a34a',
         markerStroke: '#ffe4e6',
         hand: '#be123c',
         ring: 'rgba(190,24,93,.16)',
@@ -230,6 +234,7 @@ class MenstruationGaugeCard extends HTMLElement {
       tick: 'rgba(251,113,133,.42)',
       confirmed: '#fb7185',
       fertile: '#fde047',
+      ovulation: '#4ade80',
       markerStroke: '#2f1f29',
       hand: '#fb7185',
       ring: 'rgba(251,113,133,.32)',
@@ -298,6 +303,7 @@ class MenstruationGaugeCard extends HTMLElement {
     const handAngle = -90 + ((((dayNow - 1) + now.getHours() / 24) / total) * 360);
     const isCurrentViewMonth = this._viewDate.getMonth() === now.getMonth()
       && this._viewDate.getFullYear() === now.getFullYear();
+    const hasConfirmedDaysInView = model.series.some((step) => step.confirmed);
 
     const baseTicks = model.series.map((_, i) => {
       const angle = -90 + ((i / total) * 360);
@@ -313,24 +319,21 @@ class MenstruationGaugeCard extends HTMLElement {
       return `<text x="${pos.x.toFixed(1)}" y="${pos.y.toFixed(1)}" fill="${palette.dayLabel}" font-size="10" text-anchor="middle" dominant-baseline="middle">${step.day}</text>`;
     }).join('');
 
-    const confirmedRanges = this._confirmedRanges(model.series);
-
-    const currentMonthPeriodWindowBars = isCurrentViewMonth
-      ? confirmedRanges.map((range) => {
-        const windowEnd = Math.min(total, range.start + safePeriodDuration - 1);
+    const confirmedArcBars = this._confirmedRanges(model.series).map((range) => {
         const startAngle = -90 + ((((range.start - 1) + 0.08) / total) * 360);
-        const endAngle = -90 + ((((windowEnd) - 0.08) / total) * 360);
+        const endAngle = -90 + ((((range.end) - 0.08) / total) * 360);
         const dPath = this._arcPath(cx, cy, rInner + extraBar * 0.74, startAngle, endAngle);
-        return `<path d="${dPath}" fill="none" stroke="${palette.confirmed}" stroke-width="9" stroke-linecap="round" stroke-opacity="0.24"></path>`;
+        return `<path d="${dPath}" fill="none" stroke="${palette.confirmed}" stroke-width="9" stroke-linecap="round" stroke-opacity="0.78"></path>`;
+      }).join('');
+
+    const confirmedDayBars = isCurrentViewMonth
+      ? model.series.map((step, i) => {
+        if (!step.confirmed) return '';
+        const angle = -90 + ((((i + 0.5) / total) * 360));
+        const len = extraBar;
+        return `<g transform="translate(${cx} ${cy}) rotate(${angle})"><rect x="-2.1" y="-${(rInner + baseTick + len).toFixed(1)}" width="4.2" height="${len.toFixed(1)}" rx="1.8" fill="${palette.confirmed}" fill-opacity="0.78"></rect></g>`;
       }).join('')
       : '';
-
-    const confirmedBars = confirmedRanges.map((range) => {
-      const startAngle = -90 + ((((range.start - 1) + 0.08) / total) * 360);
-      const endAngle = -90 + ((((range.end) - 0.08) / total) * 360);
-      const dPath = this._arcPath(cx, cy, rInner + extraBar * 0.74, startAngle, endAngle);
-      return `<path d="${dPath}" fill="none" stroke="${palette.confirmed}" stroke-width="9" stroke-linecap="round" stroke-opacity="0.78"></path>`;
-    }).join('');
 
     const showFertile = this._config?.show_fertile_period !== false;
     const fertileBars = model.series.map((step) => {
@@ -343,12 +346,20 @@ class MenstruationGaugeCard extends HTMLElement {
       return `<path d="${dPath}" fill="none" stroke="${palette.fertile}" stroke-width="6" stroke-linecap="round" stroke-opacity=".62"></path>`;
     }).join('');
 
+    const ovulationMarker = model.series.map((step, i) => {
+      if (!showFertile || !step.ovulation) return '';
+      const angle = -90 + ((((i + 0.5) / total) * 360));
+      const pos = this._polar(cx, cy, rInner + extraBar * 0.46, angle);
+      return `<circle cx="${pos.x.toFixed(1)}" cy="${pos.y.toFixed(1)}" r="5.2" fill="${palette.ovulation}" stroke="${palette.markerStroke}" stroke-width="2"></circle>`;
+    }).join('');
+
     let predictedMarker = '';
     let predictedBars = '';
     const predictedDt = this._parseISO(model.predicted);
     const showPredictedInView = predictedDt
       && predictedDt.getFullYear() === this._viewDate.getFullYear()
-      && predictedDt.getMonth() === this._viewDate.getMonth();
+      && predictedDt.getMonth() === this._viewDate.getMonth()
+      && !hasConfirmedDaysInView;
     if (showPredictedInView) {
       const pDay = predictedDt.getDate();
       const marker = (offset, fill, radius) => {
@@ -384,9 +395,10 @@ class MenstruationGaugeCard extends HTMLElement {
         ${dayLabels}
         ${baseTicks}
         ${fertileBars}
-        ${currentMonthPeriodWindowBars}
-        ${confirmedBars}
+        ${ovulationMarker}
         ${predictedBars}
+        ${confirmedArcBars}
+        ${confirmedDayBars}
         ${predictedMarker}
         ${isCurrentViewMonth ? `<line x1="${handA.x.toFixed(1)}" y1="${handA.y.toFixed(1)}" x2="${handB.x.toFixed(1)}" y2="${handB.y.toFixed(1)}" stroke="${palette.hand}" stroke-width="1.9" stroke-linecap="round"></line>` : ''}
         <circle cx="${cx}" cy="${cy}" r="106" fill="none" stroke="${palette.ring}" stroke-width="1"></circle>
