@@ -19,6 +19,7 @@ class CycleModel:
     avg_cycle_length: int | None
     fertile_window_start: str | None
     fertile_window_end: str | None
+    ovulation_day: str | None
     days_until_next_start: int | None
     period_duration_days: int
     learned_period_duration_days: int | None
@@ -140,13 +141,19 @@ def build_cycle_model(history: list[str], period_duration_days: int, today: date
 
     fertile_start: str | None = None
     fertile_end: str | None = None
+    ovulation: str | None = None
     days_until: int | None = None
 
-    if next_start:
+    if next_start and starts:
         next_date = date.fromisoformat(next_start)
-        ovulation_day = next_date - timedelta(days=14)
-        fertile_start = (ovulation_day - timedelta(days=4)).isoformat()
-        fertile_end = (ovulation_day + timedelta(days=1)).isoformat()
+        cycle_start = date.fromisoformat(starts[-1])
+        cycle_length = max(1, int(avg_cycle or 28))
+        fertile_end_day = min(19, cycle_length)
+        ovulation_cycle_day = min(14, fertile_end_day)
+        ovulation_day = cycle_start + timedelta(days=ovulation_cycle_day - 1)
+        ovulation = ovulation_day.isoformat()
+        fertile_start = (cycle_start + timedelta(days=7)).isoformat()
+        fertile_end = (cycle_start + timedelta(days=fertile_end_day - 1)).isoformat()
         days_until = (next_date - now).days
 
     state = STATE_NEUTRAL
@@ -165,6 +172,7 @@ def build_cycle_model(history: list[str], period_duration_days: int, today: date
         avg_cycle_length=avg_cycle,
         fertile_window_start=fertile_start,
         fertile_window_end=fertile_end,
+        ovulation_day=ovulation,
         days_until_next_start=days_until,
         period_duration_days=effective_duration,
         learned_period_duration_days=learned_avg_duration,

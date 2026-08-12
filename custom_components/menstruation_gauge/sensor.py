@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.typing import StateType
-from homeassistant.util import dt as dt_util
 
 from .const import (
     ATTR_AVG_CYCLE_LENGTH,
@@ -22,6 +20,7 @@ from .const import (
     ATTR_GROUPED_STARTS,
     ATTR_HISTORY,
     ATTR_NEXT_PREDICTED_START,
+    ATTR_OVULATION_DAY,
     ATTR_PERIOD_DURATION_DAYS,
     DOMAIN,
     SIGNAL_HISTORY_UPDATED,
@@ -54,21 +53,10 @@ class MenstruationGaugeSensor(SensorEntity):
         self._icon: str | None = runtime.icon or None
 
     async def async_added_to_hass(self) -> None:
-        """Register update signals and daily refresh."""
+        """Register update signal."""
         self.async_on_remove(
             async_dispatcher_connect(self.hass, SIGNAL_HISTORY_UPDATED, self._handle_runtime_update)
         )
-        self.async_on_remove(
-            async_track_time_change(
-                self.hass,
-                self._handle_daily_refresh,
-                hour=0,
-                minute=0,
-                second=5,
-            )
-        )
-        # Force one recalculation on add/startup so day-based attributes are never stale.
-        self.async_schedule_update_ha_state(True)
 
     async def async_update(self) -> None:
         """Update sensor from shared runtime."""
@@ -78,7 +66,7 @@ class MenstruationGaugeSensor(SensorEntity):
         model = build_cycle_model(
             history=runtime.history,
             period_duration_days=runtime.period_duration_days,
-            today=dt_util.now().date(),
+            today=date.today(),
         )
 
         self._state = model.state
@@ -91,6 +79,7 @@ class MenstruationGaugeSensor(SensorEntity):
             ATTR_AVG_CYCLE_LENGTH: model.avg_cycle_length,
             ATTR_FERTILE_WINDOW_START: model.fertile_window_start,
             ATTR_FERTILE_WINDOW_END: model.fertile_window_end,
+            ATTR_OVULATION_DAY: model.ovulation_day,
             ATTR_DAYS_UNTIL_NEXT_START: model.days_until_next_start,
             ATTR_PERIOD_DURATION_DAYS: model.period_duration_days if has_history else None,
             "period_duration_default_days": runtime.period_duration_days if has_history else None,
@@ -161,7 +150,4 @@ class MenstruationGaugeSensor(SensorEntity):
         return True
 
     def _handle_runtime_update(self) -> None:
-        self.async_schedule_update_ha_state(True)
-
-    def _handle_daily_refresh(self, _now: datetime) -> None:
         self.async_schedule_update_ha_state(True)
