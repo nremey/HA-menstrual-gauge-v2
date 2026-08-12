@@ -6,7 +6,7 @@ from datetime import date
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
@@ -149,5 +149,7 @@ class MenstruationGaugeSensor(SensorEntity):
         """Enable by default."""
         return True
 
+    @callback
     def _handle_runtime_update(self) -> None:
+        """Schedule an entity refresh from the Home Assistant event loop."""
         self.async_schedule_update_ha_state(True)
