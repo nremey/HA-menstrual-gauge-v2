@@ -4,5 +4,6 @@
   "version": "1.6.0",
   "dependencies": [],
   "config_flow": true,
-  "iot_class": "local_push"
+  "iot_class": "local_push",
+  "codeowners": ["@nremey"]
 }
