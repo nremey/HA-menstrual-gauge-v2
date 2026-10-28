@@ -4,6 +4,7 @@
   "version": "1.6.0",
   "documentation": "https://github.com/nremey/HA-menstrual-gauge-v2",
   "issue_tracker": "https://github.com/nremey/HA-menstrual-gauge-v2/issues",
+  "after_dependencies": ["http", "lovelace"],
   "dependencies": [],
   "config_flow": true,
   "iot_class": "local_push",
