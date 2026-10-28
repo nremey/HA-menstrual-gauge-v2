@@ -2,7 +2,7 @@
   "name": "Menstruation Gauge",
   "content_in_root": false,
   "homeassistant": "2024.6.0",
-  "domains": "menstruation_gauge",
-  "categories": "health_wellbeing",
+  "domains": ["menstruation_gauge"],
+  "categories": ["health_wellbeing"],
   "render_readme": true
 }
