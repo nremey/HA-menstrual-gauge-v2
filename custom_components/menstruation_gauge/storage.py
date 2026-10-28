@@ -33,7 +33,9 @@ class MenstruationStorage:
         if not isinstance(history, list):
             history = []
 
-        normalized = sorted({self._normalize_iso(raw) for raw in history if self._normalize_iso(raw)})
+        today_iso = date.today().isoformat()
+        normalized_all = sorted({self._normalize_iso(raw) for raw in history if self._normalize_iso(raw)})
+        normalized = [item for item in normalized_all if item <= today_iso]
         days = data.get("period_duration_days", 5)
         try:
             days = int(days)
@@ -41,11 +43,19 @@ class MenstruationStorage:
             days = 5
         days = max(1, min(14, days))
 
+        if normalized != normalized_all:
+            await self._store.async_save({"history": normalized, "period_duration_days": days})
+
         return {"history": normalized, "period_duration_days": days}
 
     async def async_save(self, history: Iterable[str], period_duration_days: int) -> None:
         """Save data to storage."""
-        normalized = sorted({self._normalize_iso(raw) for raw in history if self._normalize_iso(raw)})
+        today_iso = date.today().isoformat()
+        normalized = sorted({
+            normalized
+            for raw in history
+            if (normalized := self._normalize_iso(raw)) is not None and normalized <= today_iso
+        })
         days = max(1, min(14, int(period_duration_days)))
         await self._store.async_save({"history": normalized, "period_duration_days": days})
 

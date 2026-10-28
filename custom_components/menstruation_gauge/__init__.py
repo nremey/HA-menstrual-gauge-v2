@@ -44,6 +44,7 @@ from .const import (
     SERVICE_FIELD_FORMAT,
     SERVICE_FIELD_PROFILE,
     SERVICE_REMOVE_CYCLE_START,
+    SERVICE_REFRESH_CYCLE_MODEL,
     SERVICE_SET_CYCLE_HISTORY,
     SERVICE_SET_PERIOD_DURATION,
     SIGNAL_HISTORY_UPDATED,
@@ -232,6 +233,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async def async_export_history(call: ServiceCall) -> None:
         await _async_handle_export_history(hass, call)
 
+    async def async_refresh_cycle_model(call: ServiceCall) -> None:
+        """Recalculate all cycle sensors without changing stored history."""
+        async_dispatcher_send(hass, SIGNAL_HISTORY_UPDATED)
+
     common_profile_field = {
         vol.Optional(SERVICE_FIELD_ENTITY_ID): cv.entity_id,
         vol.Optional(SERVICE_FIELD_PROFILE): cv.string,
@@ -303,6 +308,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             ),
         )
 
+    if not hass.services.has_service(DOMAIN, SERVICE_REFRESH_CYCLE_MODEL):
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_REFRESH_CYCLE_MODEL,
+            async_refresh_cycle_model,
+            schema=vol.Schema({}),
+        )
+
     await _async_register_card_static_path(hass)
     await _async_ensure_lovelace_resource(hass)
 
@@ -325,6 +338,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             SERVICE_SET_PERIOD_DURATION,
             SERVICE_ERASE_ALL_HISTORY,
             SERVICE_EXPORT_HISTORY,
+            SERVICE_REFRESH_CYCLE_MODEL,
         ):
             if hass.services.has_service(DOMAIN, service):
                 hass.services.async_remove(DOMAIN, service)
@@ -335,6 +349,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def _async_handle_add(hass: HomeAssistant, call: ServiceCall) -> None:
     runtime = _runtime_for_call(hass, call)
     date_iso = _normalize_date_or_raise(call.data[SERVICE_FIELD_DATE])
+    if date_iso > date.today().isoformat():
+        raise HomeAssistantError("A confirmed cycle date cannot be in the future")
     if date_iso not in runtime.history:
         runtime.history.append(date_iso)
     await _async_save_and_notify(hass, runtime)
@@ -350,6 +366,11 @@ async def _async_handle_remove(hass: HomeAssistant, call: ServiceCall) -> None:
 async def _async_handle_set_history(hass: HomeAssistant, call: ServiceCall) -> None:
     runtime = _runtime_for_call(hass, call)
     dates = [_normalize_date_or_raise(raw) for raw in call.data[SERVICE_FIELD_DATES]]
+    future_dates = [item for item in dates if item > date.today().isoformat()]
+    if future_dates:
+        raise HomeAssistantError(
+            f"Confirmed cycle history contains future dates: {', '.join(future_dates)}"
+        )
     runtime.history = dates
     await _async_save_and_notify(hass, runtime)
 

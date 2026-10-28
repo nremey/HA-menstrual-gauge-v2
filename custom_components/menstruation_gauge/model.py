@@ -122,8 +122,9 @@ def build_cycle_model(history: list[str], period_duration_days: int, today: date
     now = today or date.today()
     normalized = normalize_history(history)
 
-    # Keep model based on confirmed values up to today, but keep full history as attribute.
-    base_history = [item for item in normalized if item <= now.isoformat()] or normalized
+    # Confirmed bleeding history can never contain future dates. Older versions
+    # exposed such values even though calculations ignored them.
+    base_history = [item for item in normalized if item <= now.isoformat()]
 
     blocks = bleeding_blocks(base_history)
     blocks_payload = [
@@ -165,7 +166,7 @@ def build_cycle_model(history: list[str], period_duration_days: int, today: date
         state = STATE_PMS
 
     return CycleModel(
-        history=normalized,
+        history=base_history,
         grouped_starts=starts,
         bleeding_blocks=blocks_payload,
         next_predicted_start=next_start,

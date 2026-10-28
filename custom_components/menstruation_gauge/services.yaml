@@ -1,3 +1,7 @@
+refresh_cycle_model:
+  name: Refresh cycle model
+  description: Recalculate all cycle sensors without changing stored history.
+
 add_cycle_start:
   name: Add cycle start day
   description: Add one confirmed bleeding day in YYYY-MM-DD format.
@@ -172,26 +176,5 @@ export_history:
     filename:
       required: false
       example: "my_cycle_backup"
-      selector:
-        text:
-
-refresh_cycle_model:
-  name: Refresh cycle model
-  description: Recalculate all date-based sensor values, including days until next predicted start.
-  fields:
-    entity_id:
-      required: false
-      example: "sensor.anna_zyklus"
-      selector:
-        entity:
-          domain: sensor
-    profile:
-      required: false
-      example: "anna"
-      selector:
-        text:
-    entry_id:
-      required: false
-      example: "a1b2c3d4e5f6..."
       selector:
         text:
