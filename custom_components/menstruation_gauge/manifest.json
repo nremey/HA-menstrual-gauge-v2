@@ -1,12 +1,12 @@
 {
   "domain": "menstruation_gauge",
   "name": "Menstruation Gauge",
-  "version": "1.6.0",
-  "documentation": "https://github.com/nremey/HA-menstrual-gauge-v2",
-  "issue_tracker": "https://github.com/nremey/HA-menstrual-gauge-v2/issues",
   "after_dependencies": ["http", "lovelace"],
-  "dependencies": [],
+  "codeowners": ["@nremey"],
   "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/nremey/HA-menstrual-gauge-v2",
   "iot_class": "local_push",
-  "codeowners": ["@nremey"]
+  "issue_tracker": "https://github.com/nremey/HA-menstrual-gauge-v2/issues",
+  "version": "1.6.0"
 }
