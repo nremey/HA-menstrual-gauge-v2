@@ -1,6 +1,8 @@
 {
   "name": "Menstruation Gauge",
+  "content_in_root": false,
   "homeassistant": "2024.6.0",
+  "domains": ["menstruation_gauge"],
   "categories": ["integration"],
   "render_readme": true
 }
