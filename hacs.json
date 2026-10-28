@@ -1,7 +1,5 @@
 {
-  "domains": ["menstruation_gauge"],
   "name": "Menstruation Gauge",
-  "categories": ["health_wellbeing"],  
   "content_in_root": false,
   "homeassistant": "2024.6.0",
   "render_readme": true
