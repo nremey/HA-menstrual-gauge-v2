@@ -1,5 +1,6 @@
 {
   "name": "Menstruation Gauge",
   "homeassistant": "2024.6.0",
+  "categories": ["sensor"],
   "render_readme": true
 }
